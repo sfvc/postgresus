@@ -4,7 +4,11 @@ import (
 	"log/slog"
 	"postgresus-backend/internal/config"
 	backups_config "postgresus-backend/internal/features/backups/config"
+	"postgresus-backend/internal/features/databases"
 	"postgresus-backend/internal/features/storages"
+	"postgresus-backend/internal/features/users"
+	user_enums "postgresus-backend/internal/features/users/enums"
+	user_repositories "postgresus-backend/internal/features/users/repositories"
 	"postgresus-backend/internal/util/period"
 	"time"
 )
@@ -14,6 +18,9 @@ type BackupBackgroundService struct {
 	backupRepository    *BackupRepository
 	backupConfigService *backups_config.BackupConfigService
 	storageService      *storages.StorageService
+	userService         *users.UserService
+	userRepository      *user_repositories.UserRepository
+	databaseService     *databases.DatabaseService
 
 	lastBackupTime time.Time
 	logger         *slog.Logger
@@ -162,6 +169,48 @@ func (s *BackupBackgroundService) runPendingBackups() error {
 
 	for _, backupConfig := range enabledBackupConfigs {
 		if backupConfig.BackupInterval == nil {
+			continue
+		}
+
+		// Get database info to check user status
+		database, err := s.databaseService.GetDatabaseByID(backupConfig.DatabaseID)
+		if err != nil {
+			s.logger.Error(
+				"Failed to get database for backup",
+				"databaseId",
+				backupConfig.DatabaseID,
+				"error",
+				err,
+			)
+			continue
+		}
+
+		// Get user to check if they are blocked
+		user, err := s.userRepository.GetUserByID(database.UserID.String())
+		if err != nil {
+			s.logger.Error(
+				"Failed to get user for database backup",
+				"databaseId",
+				backupConfig.DatabaseID,
+				"userId",
+				database.UserID,
+				"error",
+				err,
+			)
+			continue
+		}
+
+		// Skip backup if user is blocked
+		if user.Status == user_enums.UserStatusBlocked {
+			s.logger.Info(
+				"Skipping backup for blocked user",
+				"databaseId",
+				backupConfig.DatabaseID,
+				"userId",
+				database.UserID,
+				"userEmail",
+				user.Email,
+			)
 			continue
 		}
 

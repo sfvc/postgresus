@@ -1,6 +1,7 @@
 package user_repositories
 
 import (
+	user_enums "postgresus-backend/internal/features/users/enums"
 	user_models "postgresus-backend/internal/features/users/models"
 	"postgresus-backend/internal/storage"
 	"time"
@@ -65,4 +66,18 @@ func (r *UserRepository) UpdateUserPassword(userID uuid.UUID, hashedPassword str
 			"hashed_password":        hashedPassword,
 			"password_creation_time": time.Now().UTC(),
 		}).Error
+}
+
+func (r *UserRepository) GetAllUsers() ([]*user_models.User, error) {
+	var users []*user_models.User
+	if err := storage.GetDb().Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+
+func (r *UserRepository) UpdateUserStatus(userID uuid.UUID, status user_enums.UserStatus) error {
+	return storage.GetDb().Model(&user_models.User{}).
+		Where("id = ?", userID).
+		Update("status", status).Error
 }

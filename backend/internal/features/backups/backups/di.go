@@ -7,6 +7,7 @@ import (
 	"postgresus-backend/internal/features/notifiers"
 	"postgresus-backend/internal/features/storages"
 	"postgresus-backend/internal/features/users"
+	user_repositories "postgresus-backend/internal/features/users/repositories"
 	"postgresus-backend/internal/util/logger"
 	"time"
 )
@@ -25,12 +26,15 @@ var backupService = &BackupService{
 }
 
 var backupBackgroundService = &BackupBackgroundService{
-	backupService,
-	backupRepository,
-	backups_config.GetBackupConfigService(),
-	storages.GetStorageService(),
-	time.Now().UTC(),
-	logger.GetLogger(),
+	backupService:       backupService,
+	backupRepository:    backupRepository,
+	backupConfigService: backups_config.GetBackupConfigService(),
+	storageService:      storages.GetStorageService(),
+	userService:         users.GetUserService(),
+	userRepository:      &user_repositories.UserRepository{},
+	databaseService:     databases.GetDatabaseService(),
+	lastBackupTime:      time.Now().UTC(),
+	logger:              logger.GetLogger(),
 }
 
 var backupController = &BackupController{

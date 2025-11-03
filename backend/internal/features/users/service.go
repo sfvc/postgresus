@@ -50,6 +50,7 @@ func (s *UserService) SignUp(request *SignUpRequest) error {
 		PasswordCreationTime: time.Now().UTC(),
 		CreatedAt:            time.Now().UTC(),
 		Role:                 user_enums.UserRoleAdmin,
+		Status:               user_enums.UserStatusActive,
 	}
 
 	if err := s.userRepository.CreateUser(user); err != nil {
@@ -172,4 +173,116 @@ func (s *UserService) GenerateAccessToken(user *user_models.User) (*SignInRespon
 		UserID: user.ID,
 		Token:  tokenString,
 	}, nil
+}
+
+// Admin-only methods for user management
+
+func (s *UserService) CreateUser(adminUser *user_models.User, request *CreateUserRequest) error {
+	// Verify admin permissions
+	if adminUser.Role != user_enums.UserRoleAdmin {
+		return errors.New("only admin users can create other users")
+	}
+
+	// Check if user with this email already exists
+	existingUser, err := s.userRepository.GetUserByEmail(request.Email)
+	if err == nil && existingUser != nil {
+		return errors.New("user with this email already exists")
+	}
+
+	// Validate role
+	if request.Role != user_enums.UserRoleManager && request.Role != user_enums.UserRoleAdmin {
+		return errors.New("invalid role specified")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	user := &user_models.User{
+		ID:                   uuid.New(),
+		Email:                request.Email,
+		HashedPassword:       string(hashedPassword),
+		PasswordCreationTime: time.Now().UTC(),
+		CreatedAt:            time.Now().UTC(),
+		Role:                 request.Role,
+		Status:               user_enums.UserStatusActive,
+	}
+
+	if err := s.userRepository.CreateUser(user); err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UserService) GetAllUsers(adminUser *user_models.User) ([]*UserResponse, error) {
+	// Verify admin permissions
+	if adminUser.Role != user_enums.UserRoleAdmin {
+		return nil, errors.New("only admin users can list all users")
+	}
+
+	users, err := s.userRepository.GetAllUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+
+	var response []*UserResponse
+	for _, user := range users {
+		response = append(response, &UserResponse{
+			ID:        user.ID,
+			Email:     user.Email,
+			Role:      user.Role,
+			Status:    user.Status,
+			CreatedAt: user.CreatedAt,
+		})
+	}
+
+	return response, nil
+}
+
+func (s *UserService) UpdateUserStatus(adminUser *user_models.User, userID uuid.UUID, request *UpdateUserStatusRequest) error {
+	// Verify admin permissions
+	if adminUser.Role != user_enums.UserRoleAdmin {
+		return errors.New("only admin users can update user status")
+	}
+
+	// Don't allow admin to block themselves
+	if adminUser.ID == userID && request.Status == user_enums.UserStatusBlocked {
+		return errors.New("admin cannot block themselves")
+	}
+
+	_, err := s.userRepository.GetUserByID(userID.String())
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	if err := s.userRepository.UpdateUserStatus(userID, request.Status); err != nil {
+		return fmt.Errorf("failed to update user status: %w", err)
+	}
+
+	return nil
+}
+
+func (s *UserService) ChangeUserPassword(adminUser *user_models.User, userID uuid.UUID, request *ChangeUserPasswordRequest) error {
+	// Verify admin permissions
+	if adminUser.Role != user_enums.UserRoleAdmin {
+		return errors.New("only admin users can change other users' passwords")
+	}
+
+	_, err := s.userRepository.GetUserByID(userID.String())
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	if err := s.userRepository.UpdateUserPassword(userID, string(hashedPassword)); err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
 }
