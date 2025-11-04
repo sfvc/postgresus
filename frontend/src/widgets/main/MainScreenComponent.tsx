@@ -23,8 +23,6 @@ export const MainScreenComponent = () => {
   const [diskUsage, setDiskUsage] = useState<DiskUsage | undefined>(undefined);
   const [currentUser, setCurrentUser] = useState<UserResponse | undefined>(undefined);
 
-  // cargar variables de entorno
-  const showCommunityLinks = import.meta.env.VITE_APP_ENVIRONMENT !== 'dev';
 
   useEffect(() => {
     diskApi
