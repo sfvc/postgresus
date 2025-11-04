@@ -10,7 +10,7 @@ import (
 	"golang.org/x/time/rate"
 
 	user_enums "postgresus-backend/internal/features/users/enums"
-	user_models "postgresus-backend/internal/features/users/models"
+	users_models "postgresus-backend/internal/features/users/models"
 )
 
 type UserController struct {
@@ -22,6 +22,7 @@ func (c *UserController) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/users/signup", c.SignUp)
 	router.POST("/users/signin", c.SignIn)
 	router.GET("/users/is-any-user-exist", c.IsAnyUserExist)
+	router.GET("/users/me", c.GetCurrentUser)
 
 	// Admin-only routes for user management
 	router.POST("/users/admin/create-user", c.CreateUser)
@@ -109,8 +110,27 @@ func (c *UserController) IsAnyUserExist(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"isExist": isExist})
 }
 
+// GetCurrentUser
+// @Summary Get current authenticated user
+// @Description Get the current authenticated user's information
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} users_models.User
+// @Failure 401 {object} map[string]string
+// @Router /users/me [get]
+func (c *UserController) GetCurrentUser(ctx *gin.Context) {
+	user, err := c.getAuthenticatedUser(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}
+
 // Helper method to get authenticated user from Authorization header
-func (c *UserController) getAuthenticatedUser(ctx *gin.Context) (*user_models.User, error) {
+func (c *UserController) getAuthenticatedUser(ctx *gin.Context) (*users_models.User, error) {
 	authHeader := ctx.GetHeader("Authorization")
 	if authHeader == "" {
 		return nil, fmt.Errorf("authorization header is required")

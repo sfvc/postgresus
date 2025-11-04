@@ -1,0 +1,1792 @@
+basePath: /api/v1
+definitions:
+  backups.Backup:
+    properties:
+      backupDurationMs:
+        type: integer
+      backupSizeMb:
+        type: number
+      createdAt:
+        type: string
+      database:
+        $ref: '#/definitions/databases.Database'
+      databaseId:
+        type: string
+      failMessage:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/backups.BackupStatus'
+      storage:
+        $ref: '#/definitions/storages.Storage'
+      storageId:
+        type: string
+    type: object
+  backups.BackupStatus:
+    enum:
+    - IN_PROGRESS
+    - COMPLETED
+    - FAILED
+    type: string
+    x-enum-varnames:
+    - BackupStatusInProgress
+    - BackupStatusCompleted
+    - BackupStatusFailed
+  backups.MakeBackupRequest:
+    properties:
+      database_id:
+        type: string
+    required:
+    - database_id
+    type: object
+  backups_config.BackupConfig:
+    properties:
+      backupInterval:
+        $ref: '#/definitions/intervals.Interval'
+      backupIntervalId:
+        type: string
+      cpuCount:
+        type: integer
+      databaseId:
+        type: string
+      isBackupsEnabled:
+        type: boolean
+      isRetryIfFailed:
+        type: boolean
+      maxFailedTriesCount:
+        type: integer
+      sendNotificationsOn:
+        items:
+          $ref: '#/definitions/backups_config.BackupNotificationType'
+        type: array
+      storage:
+        $ref: '#/definitions/storages.Storage'
+      storageId:
+        type: string
+      storePeriod:
+        $ref: '#/definitions/period.Period'
+    type: object
+  backups_config.BackupNotificationType:
+    enum:
+    - BACKUP_FAILED
+    - BACKUP_SUCCESS
+    type: string
+    x-enum-varnames:
+    - NotificationBackupFailed
+    - NotificationBackupSuccess
+  databases.Database:
+    properties:
+      healthStatus:
+        $ref: '#/definitions/databases.HealthStatus'
+      id:
+        type: string
+      lastBackupErrorMessage:
+        type: string
+      lastBackupTime:
+        description: |-
+          these fields are not reliable, but
+          they are used for pretty UI
+        type: string
+      name:
+        type: string
+      notifiers:
+        items:
+          $ref: '#/definitions/notifiers.Notifier'
+        type: array
+      postgresql:
+        $ref: '#/definitions/postgresql.PostgresqlDatabase'
+      type:
+        $ref: '#/definitions/databases.DatabaseType'
+      userId:
+        type: string
+    type: object
+  databases.DatabaseType:
+    enum:
+    - POSTGRES
+    type: string
+    x-enum-varnames:
+    - DatabaseTypePostgres
+  databases.HealthStatus:
+    enum:
+    - AVAILABLE
+    - UNAVAILABLE
+    type: string
+    x-enum-varnames:
+    - HealthStatusAvailable
+    - HealthStatusUnavailable
+  discord_notifier.DiscordNotifier:
+    properties:
+      channelWebhookUrl:
+        type: string
+      notifierId:
+        type: string
+    type: object
+  disk.DiskUsage:
+    properties:
+      freeSpaceBytes:
+        type: integer
+      platform:
+        $ref: '#/definitions/disk.Platform'
+      totalSpaceBytes:
+        type: integer
+      usedSpaceBytes:
+        type: integer
+    type: object
+  disk.Platform:
+    enum:
+    - linux
+    - windows
+    type: string
+    x-enum-varnames:
+    - PlatformLinux
+    - PlatformWindows
+  email_notifier.EmailNotifier:
+    properties:
+      notifierId:
+        type: string
+      smtpHost:
+        type: string
+      smtpPassword:
+        type: string
+      smtpPort:
+        type: integer
+      smtpUser:
+        type: string
+      targetEmail:
+        type: string
+    type: object
+  enums.RestoreStatus:
+    enum:
+    - IN_PROGRESS
+    - COMPLETED
+    - FAILED
+    type: string
+    x-enum-varnames:
+    - RestoreStatusInProgress
+    - RestoreStatusCompleted
+    - RestoreStatusFailed
+  google_drive_storage.GoogleDriveStorage:
+    properties:
+      clientId:
+        type: string
+      clientSecret:
+        type: string
+      storageId:
+        type: string
+      tokenJson:
+        type: string
+    type: object
+  healthcheck_attempt.HealthcheckAttempt:
+    properties:
+      createdAt:
+        type: string
+      databaseId:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/databases.HealthStatus'
+    type: object
+  healthcheck_config.HealthcheckConfig:
+    properties:
+      attemptsBeforeConcideredAsDown:
+        type: integer
+      databaseId:
+        type: string
+      intervalMinutes:
+        type: integer
+      isHealthcheckEnabled:
+        type: boolean
+      isSentNotificationWhenUnavailable:
+        type: boolean
+      storeAttemptsDays:
+        type: integer
+    type: object
+  healthcheck_config.HealthcheckConfigDTO:
+    properties:
+      attemptsBeforeConcideredAsDown:
+        type: integer
+      databaseId:
+        type: string
+      intervalMinutes:
+        type: integer
+      isHealthcheckEnabled:
+        type: boolean
+      isSentNotificationWhenUnavailable:
+        type: boolean
+      storeAttemptsDays:
+        type: integer
+    type: object
+  intervals.Interval:
+    properties:
+      dayOfMonth:
+        description: only for MONTHLY
+        type: integer
+      id:
+        type: string
+      interval:
+        $ref: '#/definitions/intervals.IntervalType'
+      timeOfDay:
+        type: string
+      weekday:
+        description: only for WEEKLY
+        type: integer
+    type: object
+  intervals.IntervalType:
+    enum:
+    - HOURLY
+    - DAILY
+    - WEEKLY
+    - MONTHLY
+    type: string
+    x-enum-varnames:
+    - IntervalHourly
+    - IntervalDaily
+    - IntervalWeekly
+    - IntervalMonthly
+  local_storage.LocalStorage:
+    properties:
+      storageId:
+        type: string
+    type: object
+  models.Restore:
+    properties:
+      backup:
+        $ref: '#/definitions/backups.Backup'
+      backupId:
+        type: string
+      createdAt:
+        type: string
+      failMessage:
+        type: string
+      id:
+        type: string
+      postgresql:
+        $ref: '#/definitions/postgresql.PostgresqlDatabase'
+      restoreDurationMs:
+        type: integer
+      status:
+        $ref: '#/definitions/enums.RestoreStatus'
+    type: object
+  nas_storage.NASStorage:
+    properties:
+      domain:
+        type: string
+      host:
+        type: string
+      password:
+        type: string
+      path:
+        type: string
+      port:
+        type: integer
+      share:
+        type: string
+      storageId:
+        type: string
+      useSsl:
+        type: boolean
+      username:
+        type: string
+    type: object
+  notifiers.Notifier:
+    properties:
+      discordNotifier:
+        $ref: '#/definitions/discord_notifier.DiscordNotifier'
+      emailNotifier:
+        $ref: '#/definitions/email_notifier.EmailNotifier'
+      id:
+        type: string
+      lastSendError:
+        type: string
+      name:
+        type: string
+      notifierType:
+        $ref: '#/definitions/notifiers.NotifierType'
+      slackNotifier:
+        $ref: '#/definitions/slack_notifier.SlackNotifier'
+      teamsNotifier:
+        $ref: '#/definitions/teams_notifier.TeamsNotifier'
+      telegramNotifier:
+        allOf:
+        - $ref: '#/definitions/telegram_notifier.TelegramNotifier'
+        description: specific notifier
+      userId:
+        type: string
+      webhookNotifier:
+        $ref: '#/definitions/webhook_notifier.WebhookNotifier'
+    type: object
+  notifiers.NotifierType:
+    enum:
+    - EMAIL
+    - TELEGRAM
+    - WEBHOOK
+    - SLACK
+    - DISCORD
+    - TEAMS
+    type: string
+    x-enum-varnames:
+    - NotifierTypeEmail
+    - NotifierTypeTelegram
+    - NotifierTypeWebhook
+    - NotifierTypeSlack
+    - NotifierTypeDiscord
+    - NotifierTypeTeams
+  period.Period:
+    enum:
+    - DAY
+    - WEEK
+    - MONTH
+    - 3_MONTH
+    - 6_MONTH
+    - YEAR
+    - 2_YEARS
+    - 3_YEARS
+    - 4_YEARS
+    - 5_YEARS
+    - FOREVER
+    type: string
+    x-enum-varnames:
+    - PeriodDay
+    - PeriodWeek
+    - PeriodMonth
+    - Period3Month
+    - Period6Month
+    - PeriodYear
+    - Period2Years
+    - Period3Years
+    - Period4Years
+    - Period5Years
+    - PeriodForever
+  postgresql.PostgresqlDatabase:
+    properties:
+      database:
+        type: string
+      databaseId:
+        type: string
+      host:
+        description: connection data
+        type: string
+      id:
+        type: string
+      isHttps:
+        type: boolean
+      password:
+        type: string
+      port:
+        type: integer
+      restoreId:
+        type: string
+      username:
+        type: string
+      version:
+        $ref: '#/definitions/tools.PostgresqlVersion'
+    type: object
+  s3_storage.S3Storage:
+    properties:
+      s3AccessKey:
+        type: string
+      s3Bucket:
+        type: string
+      s3Endpoint:
+        type: string
+      s3Region:
+        type: string
+      s3SecretKey:
+        type: string
+      storageId:
+        type: string
+    type: object
+  slack_notifier.SlackNotifier:
+    properties:
+      botToken:
+        type: string
+      notifierId:
+        type: string
+      targetChatId:
+        type: string
+    type: object
+  storages.Storage:
+    properties:
+      googleDriveStorage:
+        $ref: '#/definitions/google_drive_storage.GoogleDriveStorage'
+      id:
+        type: string
+      lastSaveError:
+        type: string
+      localStorage:
+        allOf:
+        - $ref: '#/definitions/local_storage.LocalStorage'
+        description: specific storage
+      name:
+        type: string
+      nasStorage:
+        $ref: '#/definitions/nas_storage.NASStorage'
+      s3Storage:
+        $ref: '#/definitions/s3_storage.S3Storage'
+      type:
+        $ref: '#/definitions/storages.StorageType'
+      userId:
+        type: string
+    type: object
+  storages.StorageType:
+    enum:
+    - LOCAL
+    - S3
+    - GOOGLE_DRIVE
+    - NAS
+    type: string
+    x-enum-varnames:
+    - StorageTypeLocal
+    - StorageTypeS3
+    - StorageTypeGoogleDrive
+    - StorageTypeNAS
+  system_healthcheck.HealthcheckResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  teams_notifier.TeamsNotifier:
+    properties:
+      notifierId:
+        type: string
+      powerAutomateUrl:
+        type: string
+    type: object
+  telegram_notifier.TelegramNotifier:
+    properties:
+      botToken:
+        type: string
+      notifierId:
+        type: string
+      targetChatId:
+        type: string
+      threadId:
+        type: integer
+    type: object
+  tools.PostgresqlVersion:
+    enum:
+    - "13"
+    - "14"
+    - "15"
+    - "16"
+    - "17"
+    - "18"
+    type: string
+    x-enum-varnames:
+    - PostgresqlVersion13
+    - PostgresqlVersion14
+    - PostgresqlVersion15
+    - PostgresqlVersion16
+    - PostgresqlVersion17
+    - PostgresqlVersion18
+  user_enums.UserRole:
+    enum:
+    - ADMIN
+    - MANAGER
+    type: string
+    x-enum-varnames:
+    - UserRoleAdmin
+    - UserRoleManager
+  user_enums.UserStatus:
+    enum:
+    - ACTIVE
+    - BLOCKED
+    type: string
+    x-enum-varnames:
+    - UserStatusActive
+    - UserStatusBlocked
+  users.ChangeUserPasswordRequest:
+    properties:
+      newPassword:
+        minLength: 8
+        type: string
+    required:
+    - newPassword
+    type: object
+  users.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+      role:
+        $ref: '#/definitions/user_enums.UserRole'
+    required:
+    - email
+    - password
+    - role
+    type: object
+  users.SignInRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  users.SignInResponse:
+    properties:
+      token:
+        type: string
+      userId:
+        type: string
+    type: object
+  users.SignUpRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  users.UpdateUserStatusRequest:
+    properties:
+      status:
+        $ref: '#/definitions/user_enums.UserStatus'
+    required:
+    - status
+    type: object
+  users.UserResponse:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      role:
+        $ref: '#/definitions/user_enums.UserRole'
+      status:
+        $ref: '#/definitions/user_enums.UserStatus'
+    type: object
+  users_models.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      role:
+        $ref: '#/definitions/user_enums.UserRole'
+      status:
+        $ref: '#/definitions/user_enums.UserStatus'
+    type: object
+  webhook_notifier.WebhookMethod:
+    enum:
+    - POST
+    - GET
+    type: string
+    x-enum-varnames:
+    - WebhookMethodPOST
+    - WebhookMethodGET
+  webhook_notifier.WebhookNotifier:
+    properties:
+      notifierId:
+        type: string
+      webhookMethod:
+        $ref: '#/definitions/webhook_notifier.WebhookMethod'
+      webhookUrl:
+        type: string
+    type: object
+host: localhost:4005
+info:
+  contact: {}
+  description: API for Postgresus
+  termsOfService: http://swagger.io/terms/
+  title: Postgresus Backend API
+  version: "1.0"
+paths:
+  /backup-configs/database/{id}:
+    get:
+      description: Get backup configuration for a specific database
+      parameters:
+      - description: Database ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/backups_config.BackupConfig'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      summary: Get backup configuration by database ID
+      tags:
+      - backup-configs
+  /backup-configs/save:
+    post:
+      consumes:
+      - application/json
+      description: Save or update backup configuration for a database
+      parameters:
+      - description: Backup configuration data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/backups_config.BackupConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/backups_config.BackupConfig'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Save backup configuration
+      tags:
+      - backup-configs
+  /backup-configs/storage/{id}/is-using:
+    get:
+      description: Check if a storage is currently being used by any backup configuration
+      parameters:
+      - description: Storage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Check if storage is being used
+      tags:
+      - backup-configs
+  /backups:
+    get:
+      description: Get all backups for the specified database
+      parameters:
+      - description: Database ID
+        in: query
+        name: database_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/backups.Backup'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get backups for a database
+      tags:
+      - backups
+    post:
+      consumes:
+      - application/json
+      description: Create a new backup for the specified database
+      parameters:
+      - description: Backup creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/backups.MakeBackupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Create a backup
+      tags:
+      - backups
+  /backups/{id}:
+    delete:
+      description: Delete an existing backup
+      parameters:
+      - description: Backup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Delete a backup
+      tags:
+      - backups
+  /backups/{id}/file:
+    get:
+      description: Download the backup file for the specified backup
+      parameters:
+      - description: Backup ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Download a backup file
+      tags:
+      - backups
+  /databases:
+    get:
+      description: Get all databases for the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/databases.Database'
+            type: array
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Get databases
+      tags:
+      - databases
+  /databases/{id}:
+    delete:
+      description: Delete a database configuration
+      parameters:
+      - description: Database ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Delete a database
+      tags:
+      - databases
+    get:
+      description: Get a database configuration by ID
+      parameters:
+      - description: Database ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/databases.Database'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Get a database
+      tags:
+      - databases
+  /databases/{id}/copy:
+    post:
+      description: Copy an existing database configuration
+      parameters:
+      - description: Database ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/databases.Database'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Copy a database
+      tags:
+      - databases
+  /databases/{id}/test-connection:
+    post:
+      description: Test connection to an existing database configuration
+      parameters:
+      - description: Database ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Test database connection
+      tags:
+      - databases
+  /databases/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new database configuration
+      parameters:
+      - description: Database creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/databases.Database'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/databases.Database'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Create a new database
+      tags:
+      - databases
+  /databases/notifier/{id}/is-using:
+    get:
+      description: Check if a notifier is currently being used by any database
+      parameters:
+      - description: Notifier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Check if notifier is being used
+      tags:
+      - databases
+  /databases/test-connection-direct:
+    post:
+      consumes:
+      - application/json
+      description: Test connection to a database configuration without saving it
+      parameters:
+      - description: Database configuration to test
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/databases.Database'
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Test database connection directly
+      tags:
+      - databases
+  /databases/update:
+    post:
+      consumes:
+      - application/json
+      description: Update an existing database configuration
+      parameters:
+      - description: Database update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/databases.Database'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/databases.Database'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Update a database
+      tags:
+      - databases
+  /disk/usage:
+    get:
+      description: Returns information about disk space usage
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/disk.DiskUsage'
+        "500":
+          description: Internal Server Error
+      summary: Get disk usage information
+      tags:
+      - disk
+  /downdetect/api:
+    get:
+      consumes:
+      - application/json
+      description: Checks if the API service is available
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      summary: Check API availability
+      tags:
+      - downdetect
+  /healthcheck-attempts/{databaseId}:
+    get:
+      description: Get healthcheck attempts for a specific database with optional
+        before date filter
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Database ID
+        in: path
+        name: databaseId
+        required: true
+        type: string
+      - description: After date (RFC3339 format)
+        in: query
+        name: afterDate
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/healthcheck_attempt.HealthcheckAttempt'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Get healthcheck attempts by database
+      tags:
+      - healthcheck-attempts
+  /healthcheck-config:
+    post:
+      consumes:
+      - application/json
+      description: Create or update healthcheck configuration for a database
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Healthcheck configuration data
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/healthcheck_config.HealthcheckConfigDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Save healthcheck configuration
+      tags:
+      - healthcheck-config
+  /healthcheck-config/{databaseId}:
+    get:
+      description: Get healthcheck configuration for a specific database
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Database ID
+        in: path
+        name: databaseId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/healthcheck_config.HealthcheckConfig'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Get healthcheck configuration
+      tags:
+      - healthcheck-config
+  /notifiers:
+    get:
+      description: Get all notifiers for the current user
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/notifiers.Notifier'
+            type: array
+        "401":
+          description: Unauthorized
+      summary: Get all notifiers
+      tags:
+      - notifiers
+    post:
+      consumes:
+      - application/json
+      description: Create or update a notifier
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Notifier data
+        in: body
+        name: notifier
+        required: true
+        schema:
+          $ref: '#/definitions/notifiers.Notifier'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/notifiers.Notifier'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Save a notifier
+      tags:
+      - notifiers
+  /notifiers/{id}:
+    delete:
+      description: Delete a notifier by ID
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Notifier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Delete a notifier
+      tags:
+      - notifiers
+    get:
+      description: Get a specific notifier by ID
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Notifier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/notifiers.Notifier'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Get a notifier by ID
+      tags:
+      - notifiers
+  /notifiers/{id}/test:
+    post:
+      description: Send a test notification using the specified notifier
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Notifier ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Send test notification
+      tags:
+      - notifiers
+  /notifiers/direct-test:
+    post:
+      consumes:
+      - application/json
+      description: Send a test notification using a notifier object provided in the
+        request
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Notifier data
+        in: body
+        name: notifier
+        required: true
+        schema:
+          $ref: '#/definitions/notifiers.Notifier'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Send test notification directly
+      tags:
+      - notifiers
+  /restores/{backupId}:
+    get:
+      description: Get all restores for a specific backup
+      parameters:
+      - description: Backup ID
+        in: path
+        name: backupId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Restore'
+            type: array
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Get restores for a backup
+      tags:
+      - restores
+  /restores/{backupId}/restore:
+    post:
+      description: Start a restore process for a specific backup
+      parameters:
+      - description: Backup ID
+        in: path
+        name: backupId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Restore a backup
+      tags:
+      - restores
+  /storages:
+    get:
+      description: Get all storages for the current user
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/storages.Storage'
+            type: array
+        "401":
+          description: Unauthorized
+      summary: Get all storages
+      tags:
+      - storages
+    post:
+      consumes:
+      - application/json
+      description: Create or update a storage
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Storage data
+        in: body
+        name: storage
+        required: true
+        schema:
+          $ref: '#/definitions/storages.Storage'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/storages.Storage'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Save a storage
+      tags:
+      - storages
+  /storages/{id}:
+    delete:
+      description: Delete a storage by ID
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Storage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Delete a storage
+      tags:
+      - storages
+    get:
+      description: Get a specific storage by ID
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Storage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/storages.Storage'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Get a storage by ID
+      tags:
+      - storages
+  /storages/{id}/test:
+    post:
+      description: Test the connection to the storage
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Storage ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Test storage connection
+      tags:
+      - storages
+  /storages/direct-test:
+    post:
+      consumes:
+      - application/json
+      description: Test the connection to a storage object provided in the request
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Storage data
+        in: body
+        name: storage
+        required: true
+        schema:
+          $ref: '#/definitions/storages.Storage'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Test storage connection directly
+      tags:
+      - storages
+  /system/health:
+    get:
+      description: Check if the system is healthy by testing database connection
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/system_healthcheck.HealthcheckResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/system_healthcheck.HealthcheckResponse'
+      summary: Check system health
+      tags:
+      - system/health
+  /users/admin/{id}/password:
+    put:
+      consumes:
+      - application/json
+      description: Change the password of a user. Only accessible by admin users.
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Password change data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.ChangeUserPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Change user password (Admin only)
+      tags:
+      - users
+  /users/admin/{id}/status:
+    put:
+      consumes:
+      - application/json
+      description: Update the status of a user (ACTIVE/BLOCKED). Only accessible by
+        admin users.
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.UpdateUserStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update user status (Admin only)
+      tags:
+      - users
+  /users/admin/create-user:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with specified role. Only accessible by admin
+        users.
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: User creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new user (Admin only)
+      tags:
+      - users
+  /users/admin/list:
+    get:
+      description: Get a list of all users in the system. Only accessible by admin
+        users.
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/users.UserResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all users (Admin only)
+      tags:
+      - users
+  /users/is-any-user-exist:
+    get:
+      description: Check if any user exists in the system
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+      summary: Check if any user exists
+      tags:
+      - users
+  /users/me:
+    get:
+      description: Get the current authenticated user's information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users_models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current authenticated user
+      tags:
+      - users
+  /users/signin:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with email and password
+      parameters:
+      - description: User signin data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/users.SignInResponse'
+        "400":
+          description: Bad Request
+        "429":
+          description: Rate limit exceeded
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Authenticate a user
+      tags:
+      - users
+  /users/signup:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email and password
+      parameters:
+      - description: User signup data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+      summary: Register a new user
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"

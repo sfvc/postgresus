@@ -157,7 +157,8 @@ export const MainScreenComponent = () => {
             Health-check
           </a>
 
-          {showCommunityLinks && (
+
+
             <>
               <a
                 className="hover:opacity-80"
@@ -180,7 +181,7 @@ export const MainScreenComponent = () => {
                 </GitHubButton>
               </div>
             </>
-          )}
+          
 
           {currentUser && (
             <div className="text-sm text-gray-600">

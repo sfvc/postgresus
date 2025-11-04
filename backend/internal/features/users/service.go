@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	user_enums "postgresus-backend/internal/features/users/enums"
-	user_models "postgresus-backend/internal/features/users/models"
+	users_models "postgresus-backend/internal/features/users/models"
 	user_repositories "postgresus-backend/internal/features/users/repositories"
 )
 
@@ -43,7 +43,7 @@ func (s *UserService) SignUp(request *SignUpRequest) error {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	user := &user_models.User{
+	user := &users_models.User{
 		ID:                   uuid.New(),
 		Email:                request.Email,
 		HashedPassword:       string(hashedPassword),
@@ -74,7 +74,7 @@ func (s *UserService) SignIn(request *SignInRequest) (*SignInResponse, error) {
 	return s.GenerateAccessToken(user)
 }
 
-func (s *UserService) GetUserFromToken(token string) (*user_models.User, error) {
+func (s *UserService) GetUserFromToken(token string) (*users_models.User, error) {
 	secretKey, err := s.secretKeyRepository.GetSecretKey()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get secret key: %w", err)
@@ -144,11 +144,11 @@ func (s *UserService) ChangePassword(newPassword string) error {
 	return nil
 }
 
-func (s *UserService) GetFirstUser() (*user_models.User, error) {
+func (s *UserService) GetFirstUser() (*users_models.User, error) {
 	return s.userRepository.GetFirstUser()
 }
 
-func (s *UserService) GenerateAccessToken(user *user_models.User) (*SignInResponse, error) {
+func (s *UserService) GenerateAccessToken(user *users_models.User) (*SignInResponse, error) {
 	secretKey, err := s.secretKeyRepository.GetSecretKey()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get secret key: %w", err)
@@ -177,7 +177,7 @@ func (s *UserService) GenerateAccessToken(user *user_models.User) (*SignInRespon
 
 // Admin-only methods for user management
 
-func (s *UserService) CreateUser(adminUser *user_models.User, request *CreateUserRequest) error {
+func (s *UserService) CreateUser(adminUser *users_models.User, request *CreateUserRequest) error {
 	// Verify admin permissions
 	if adminUser.Role != user_enums.UserRoleAdmin {
 		return errors.New("only admin users can create other users")
@@ -199,7 +199,7 @@ func (s *UserService) CreateUser(adminUser *user_models.User, request *CreateUse
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	user := &user_models.User{
+	user := &users_models.User{
 		ID:                   uuid.New(),
 		Email:                request.Email,
 		HashedPassword:       string(hashedPassword),
@@ -216,7 +216,7 @@ func (s *UserService) CreateUser(adminUser *user_models.User, request *CreateUse
 	return nil
 }
 
-func (s *UserService) GetAllUsers(adminUser *user_models.User) ([]*UserResponse, error) {
+func (s *UserService) GetAllUsers(adminUser *users_models.User) ([]*UserResponse, error) {
 	// Verify admin permissions
 	if adminUser.Role != user_enums.UserRoleAdmin {
 		return nil, errors.New("only admin users can list all users")
@@ -241,7 +241,7 @@ func (s *UserService) GetAllUsers(adminUser *user_models.User) ([]*UserResponse,
 	return response, nil
 }
 
-func (s *UserService) UpdateUserStatus(adminUser *user_models.User, userID uuid.UUID, request *UpdateUserStatusRequest) error {
+func (s *UserService) UpdateUserStatus(adminUser *users_models.User, userID uuid.UUID, request *UpdateUserStatusRequest) error {
 	// Verify admin permissions
 	if adminUser.Role != user_enums.UserRoleAdmin {
 		return errors.New("only admin users can update user status")
@@ -264,7 +264,7 @@ func (s *UserService) UpdateUserStatus(adminUser *user_models.User, userID uuid.
 	return nil
 }
 
-func (s *UserService) ChangeUserPassword(adminUser *user_models.User, userID uuid.UUID, request *ChangeUserPasswordRequest) error {
+func (s *UserService) ChangeUserPassword(adminUser *users_models.User, userID uuid.UUID, request *ChangeUserPasswordRequest) error {
 	// Verify admin permissions
 	if adminUser.Role != user_enums.UserRoleAdmin {
 		return errors.New("only admin users can change other users' passwords")

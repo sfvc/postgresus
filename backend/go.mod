@@ -24,7 +24,7 @@ require (
 	gorm.io/gorm v1.26.1
 )
 
-require github.com/swaggo/swag v1.16.4 // indirect
+require github.com/swaggo/swag v1.16.4
 
 require (
 	cloud.google.com/go/auth v0.16.2 // indirect
