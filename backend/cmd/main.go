@@ -260,7 +260,7 @@ func runMigrations(log *slog.Logger) {
 }
 
 func enableCors(ginApp *gin.Engine) {
-	if config.GetEnv().EnvMode == env_utils.EnvModeDevelopment {
+//	if config.GetEnv().EnvMode == env_utils.EnvModeDevelopment {
 		// Setup CORS
 		ginApp.Use(cors.New(cors.Config{
 			AllowOrigins: []string{"*"},
@@ -281,7 +281,7 @@ func enableCors(ginApp *gin.Engine) {
 			},
 			AllowCredentials: true,
 		}))
-	}
+	//}
 }
 
 func mountFrontend(ginApp *gin.Engine) {
