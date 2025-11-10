@@ -286,3 +286,30 @@ func (s *UserService) ChangeUserPassword(adminUser *users_models.User, userID uu
 
 	return nil
 }
+
+func (s *UserService) ChangeMyPassword(user *users_models.User, request *ChangeMyPasswordRequest) error {
+	// Verify current password
+	err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(request.CurrentPassword))
+	if err != nil {
+		return errors.New("current password is incorrect")
+	}
+
+	// Check if new password is different from current password
+	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(request.NewPassword))
+	if err == nil {
+		return errors.New("new password must be different from current password")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Update password with new creation time
+	if err := s.userRepository.UpdateUserPassword(user.ID, string(hashedPassword)); err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
+}

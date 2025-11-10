@@ -497,6 +497,17 @@ definitions:
     x-enum-varnames:
     - UserStatusActive
     - UserStatusBlocked
+  users.ChangeMyPasswordRequest:
+    properties:
+      currentPassword:
+        type: string
+      newPassword:
+        minLength: 8
+        type: string
+    required:
+    - currentPassword
+    - newPassword
+    type: object
   users.ChangeUserPasswordRequest:
     properties:
       newPassword:
@@ -1733,6 +1744,47 @@ paths:
       security:
       - BearerAuth: []
       summary: Get current authenticated user
+      tags:
+      - users
+  /users/me/password:
+    put:
+      consumes:
+      - application/json
+      description: Change the authenticated user's own password
+      parameters:
+      - description: JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Password change data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/users.ChangeMyPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Change current user's password
       tags:
       - users
   /users/signin:

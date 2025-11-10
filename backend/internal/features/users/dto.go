@@ -38,6 +38,11 @@ type ChangeUserPasswordRequest struct {
 	NewPassword string `json:"newPassword" validate:"required,min=8"`
 }
 
+type ChangeMyPasswordRequest struct {
+	CurrentPassword string `json:"currentPassword" validate:"required"`
+	NewPassword     string `json:"newPassword" validate:"required,min=8"`
+}
+
 type UserResponse struct {
 	ID        uuid.UUID             `json:"id"`
 	Email     string                `json:"email"`

@@ -23,6 +23,7 @@ func (c *UserController) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/users/signin", c.SignIn)
 	router.GET("/users/is-any-user-exist", c.IsAnyUserExist)
 	router.GET("/users/me", c.GetCurrentUser)
+	router.PUT("/users/me/password", c.ChangeMyPassword)
 
 	// Admin-only routes for user management
 	router.POST("/users/admin/create-user", c.CreateUser)
@@ -276,6 +277,40 @@ func (c *UserController) UpdateUserStatus(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "User status updated successfully"})
+}
+
+// ChangeMyPassword
+// @Summary Change current user's password
+// @Description Change the authenticated user's own password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "JWT token"
+// @Param request body ChangeMyPasswordRequest true "Password change data"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /users/me/password [put]
+func (c *UserController) ChangeMyPassword(ctx *gin.Context) {
+	user, err := c.getAuthenticatedUser(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	var request ChangeMyPasswordRequest
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
+		return
+	}
+
+	err = c.userService.ChangeMyPassword(user, &request)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
 }
 
 // ChangeUserPassword

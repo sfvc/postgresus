@@ -44,6 +44,12 @@ export const usersApi = {
     const requestOptions = new RequestOptions();
     return apiHelper.fetchGetJson<UserResponse>(`${getApplicationServer()}/api/v1/users/me`, requestOptions);
   },
+
+  changeMyPassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    const requestOptions = new RequestOptions();
+    requestOptions.setBody(JSON.stringify({ currentPassword, newPassword }));
+    await apiHelper.fetchPutJson<void>(`${getApplicationServer()}/api/v1/users/me/password`, requestOptions);
+  },
 };
 
 export default usersApi;

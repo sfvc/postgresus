@@ -1,4 +1,5 @@
-import { Tooltip, Button } from 'antd';
+import { Tooltip, Button, Dropdown } from 'antd';
+import type { MenuProps } from 'antd';
 import { useEffect, useState } from 'react';
 import GitHubButton from 'react-github-btn';
 
@@ -9,7 +10,7 @@ import { usersApi, type UserResponse } from '../../shared/api/users';
 import { DatabasesComponent } from '../../features/databases/ui/DatabasesComponent';
 import { NotifiersComponent } from '../../features/notifiers/ui/NotifiersComponent';
 import { StoragesComponent } from '../../features/storages/StoragesComponent';
-import { AdminUsersComponent } from '../../features/users';
+import { AdminUsersComponent, ChangePasswordModal, useChangePasswordModal } from '../../features/users';
 import { useScreenHeight } from '../../shared/hooks';
 import { ToastHelper } from '../../shared/toast/ToastHelper';
 
@@ -22,6 +23,7 @@ export const MainScreenComponent = () => {
   );
   const [diskUsage, setDiskUsage] = useState<DiskUsage | undefined>(undefined);
   const [currentUser, setCurrentUser] = useState<UserResponse | undefined>(undefined);
+  const { isOpen, openModal, closeModal } = useChangePasswordModal();
 
 
   useEffect(() => {
@@ -77,6 +79,23 @@ export const MainScreenComponent = () => {
     userApi.logout();
     userApi.notifyAuthListeners();
   };
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'change-password',
+      label: 'Cambiar Contraseña',
+      onClick: openModal,
+    },
+    {
+      type: 'divider',
+    },
+    {
+      key: 'logout',
+      label: 'Cerrar Sesión',
+      onClick: handleLogout,
+      danger: true,
+    },
+  ];
 
   const isUsedMoreThan95Percent =
     diskUsage && diskUsage.usedSpaceBytes / diskUsage.totalSpaceBytes > 0.95;
@@ -182,14 +201,12 @@ export const MainScreenComponent = () => {
           
 
           {currentUser && (
-            <div className="text-sm text-gray-600">
-              {currentUser.email} ({currentUser.role})
-            </div>
+            <Dropdown menu={{ items: userMenuItems }} trigger={['click']} placement="bottomRight">
+              <Button type="primary" size="small" className="cursor-pointer">
+                {currentUser.email} ({currentUser.role})
+              </Button>
+            </Dropdown>
           )}
-
-          <Button type="primary" size="small" onClick={handleLogout}>
-            Logout
-          </Button>
 
           {diskUsage && (
             <Tooltip title="To make backups locally and restore them, you need to have enough space on your disk. For restore, you need to have same amount of space that the backup size.">
@@ -243,6 +260,9 @@ export const MainScreenComponent = () => {
           v{APP_VERSION}
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal isOpen={isOpen} onClose={closeModal} />
     </div>
   );
 };

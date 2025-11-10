@@ -37,3 +37,7 @@ npm run format
 ```
 
 This will automatically format all TypeScript, JavaScript, JSON, CSS, and Markdown files.
+
+docker build -t postgresus:local .
+docker tag postgresus:local ghcr.io/sfvc/postgresus:latest
+docker push ghcr.io/sfvc/postgresus:latest
